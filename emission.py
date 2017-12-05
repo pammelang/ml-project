@@ -48,8 +48,12 @@ class emission(object):
                     word_count[word] = 1
                 else:
                     word_count[word] += 1
-                    if word_count[word] < k:
-                        X[i][j] = token
+
+        for i in range(len(X)):
+            for j in range(len(X[i])):
+                word = X[i][j]
+                if word_count[word] < k:
+                    X[i][j] = token
         return X
 
 
@@ -108,7 +112,7 @@ class emission(object):
         self.process_input(infile)
         self.tokenizedX = self.tokenize(self.testX)
         self.get_emission_prob(self.X, self.Y)
-        print(self.tokenizedX)
+        print(self.prob)
         self.get_opt_tags(self.tokenizedX, self.prob)
 
         outfile = open(outfile, 'w')

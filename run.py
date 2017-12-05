@@ -1,7 +1,13 @@
 import emission as em
+import transition as t
 
-e = em.emission()
-e.print_out('train', 'dev.in', 'dev.p2.out')
+def main():
+    e = em.emission()
+    e.print_out('train', 'dev.in', 'dev.p2.out')
+
+    t = t.transition()
+    t.train('train')
+    print(t.get_trans_params(t.Y))
 
 def process(file):
     with open(file) as f:
