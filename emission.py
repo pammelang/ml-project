@@ -1,3 +1,5 @@
+import copy
+
 class emission(object):
     def __init__(self):
         self.X = []
@@ -5,6 +7,7 @@ class emission(object):
         self.testX = []
         self.tokenizedX = []
         self.optY = []
+        self.word_count = {}
         self.prob = {} # a dict of emission probablities: {label1: {word1: 0.3, word2: 0.2}}
 
     def process(self, file):
@@ -37,6 +40,7 @@ class emission(object):
                 x = []
 
     def tokenize(self, X):
+        print(X)
         k = 3
         token = '#UNK#'
         word_count = {}
@@ -48,17 +52,33 @@ class emission(object):
                     word_count[word] = 1
                 else:
                     word_count[word] += 1
-
+        print(word_count)
         for i in range(len(X)):
             for j in range(len(X[i])):
                 word = X[i][j]
-                if word_count[word] < k:
-                    X[i][j] = token
+                if word in word_count.keys():
+                    if word_count[word] < k:
+                        X[i][j] = token
+                        del word_count[word]
+        self.word_count = word_count
+        self.X = X
         return X
+
+    def tokenize_test(self, X):
+        clone = copy.deepcopy(X)
+        for i in range(len(X)):
+            for j in range(len(X[i])):
+                foundFlag = False
+                if clone[i][j] in self.word_count.keys():
+                    foundFlag = True
+                    continue
+                if not foundFlag:
+                    clone[i][j] = "#UNK#"
+        print(X)
+        return clone
 
 
     def get_emission_prob(self, X, Y):
-        X = self.tokenize(X)
         count, permutations, result = [], {}, []
         # count = list of labels & count eg. [['A', 'B'], [3, 1]]
         # permutation = dict of labels & obs eg. {'label': {'obs1': 3, 'obs2': 1}}
@@ -93,26 +113,29 @@ class emission(object):
 
         self.prob = result
 
-    def get_opt_tags(self, X, emParams):
+    def get_opt_tags(self, X, em):
         result = []
         for i in range(len(X)):
             result.append([])
             for j in range(len(X[i])):
                 temp = {}
-                obs = X[i][j]
-                for label in emParams:
-                    if obs in emParams[label]:
-                        temp[label] = emParams[label][obs]
+                x = X[i][j]
+                for label, obs in em.items():
+                    if x in obs.keys():
+                        temp[label] = obs[x]
 
                 result[i].append(max(temp, key=temp.get))
         self.optY = result
 
+    def score(self):
+
+
     def print_out(self, train, infile, outfile):
         self.process(train)
         self.process_input(infile)
-        self.tokenizedX = self.tokenize(self.testX)
+        self.tokenize(self.X)
+        self.tokenizedX = self.tokenize_test(self.testX)
         self.get_emission_prob(self.X, self.Y)
-        print(self.prob)
         self.get_opt_tags(self.tokenizedX, self.prob)
 
         outfile = open(outfile, 'w')

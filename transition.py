@@ -50,12 +50,9 @@ class transition(object):
     def __init__(self):
         self.X = []
         self.Y = []
-        self.testX = []
-        self.tokenizedX = []
-        self.optY = []
         self.prob = {}
 
-    def train(file):
+    def train(self, file):
         with open(file) as f:
             data = f.read().splitlines()
         X, Y, x, y = [], [], [], []
@@ -72,7 +69,7 @@ class transition(object):
         self.X = X
         self.Y = Y
 
-    def get_trans_params(Y):
+    def get_trans_params(self, Y):
         count, permutations, result = [['START', 'STOP'],[0,0]], [], []
         # permutations = a set of tuples (i, j, count) - eg [['START', 'O', 32], ..]
         # count = (labels, count) - eg [['START', 'A'], [20, 12]]
@@ -123,21 +120,12 @@ class transition(object):
                         new_p = [Y[i][j-1], Y[i][j], 1]
                         permutations.append(new_p)
 
-        for i in range(len(Y)):
-            result.append([])
-            for j in range(len(Y[i])):
-                for p in permutations:
-                    if j == 0 and p[0] == 'START' and p[1] == Y[i][j]:
-                        result[i].append(p[2]/count[1][0])
+        trans = permutations[:]
+        for p in permutations:
+            trans[2] = p[2]/count[1][count[0].index(p[0])]
 
-                    if p[0]== Y[i][j-1] and p[1] == Y[i][j]:
-                        result[i].append(p[2]/count[1][count[0].index(p[0])])
-
-                    if j == len(Y[i])-1 and p[0] == Y[i][j] and p[1] == 'STOP':
-                        result[i].append(p[2]/count[1][1])
-
-        self.prob = result
-        return result
+        self.prob = trans
+        return trans
 
     def viterbi(self, e, t, infile, outfile, p=True):
         # Y = [ <x1> {'tag1': prob1,}, <x2> {'tag2': prob, 'tag3': prob},]
